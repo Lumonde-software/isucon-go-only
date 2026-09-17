@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - "webapp/golang/**"
+      - "benchmarker/**"
+      - ".github/workflows/ci.yml"
+      - "Makefile"
+      - "webapp/compose.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Initialize the project
+        run: make init
+
+      # go-only: compose.yml は常に golang/ をビルドするため、
+      # 言語切り替え(purl による compose.yml 書き換え)は不要
+
+      - name: Start the server
+        run: |
+          cd webapp
+          docker compose up --build -d
+
+      - name: Build the benchmark
+        run: |
+          cd benchmarker
+          docker build -t private-isu-benchmarker .
+
+      - name: Wait for data initialization to complete
+        run: |
+          cd webapp
+          until docker compose exec -T mysql mysql -uroot -proot -e "SELECT 1 FROM posts LIMIT 1;" isuconp; do
+            echo "Waiting for database initialization..."
+            sleep 10
+          done
+          until docker compose exec -T mysql mysql -uroot -proot -e "SELECT 1 FROM users LIMIT 1;" isuconp; do
+            echo "Waiting for database initialization..."
+            sleep 10
+          done
+          until docker compose exec -T mysql mysql -uroot -proot -e "SELECT 1 FROM comments LIMIT 1;" isuconp; do
+            echo "Waiting for database initialization..."
+            sleep 10
+          done
+
+      - name: Run the benchmark
+        continue-on-error: true
+        run: |
+          cd benchmarker
+          docker run \
+            --network host \
+            --add-host host.docker.internal:host-gateway \
+            -i private-isu-benchmarker \
+            /bin/benchmarker \
+            -t http://host.docker.internal \
+            -u /opt/userdata \
+          | tee benchmark_output.json || echo "BENCHMARK_FAILED=true" >> "$GITHUB_ENV"
+
+      - name: Show logs
+        run: |
+          cd webapp
+          docker compose logs
+
+      - name: Check benchmark result
+        run: |
+          cd benchmarker
+          if [ ! -f benchmark_output.json ]; then
+            echo "benchmark_output.json not found"
+            exit 1
+          fi
+          if ! jq -e '.pass == true' benchmark_output.json > /dev/null; then
+            echo "Benchmark failed: pass is not true"
+            exit 1
+          fi
+
+      - name: Fail if benchmark failed
+        if: env.BENCHMARK_FAILED == 'true'
+        run: |
+          echo "Benchmark failed"
+          exit 1

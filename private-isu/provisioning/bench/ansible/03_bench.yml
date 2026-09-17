@@ -1,0 +1,17 @@
+---
+- hosts: bench
+  become: yes
+  become_user: isucon
+  gather_facts: no
+  tasks:
+    - name: clean private_isu.git
+      file: path=/home/isucon/private_isu.git state=absent
+    # go-only: cloud-config (benchmarker.cfg / standalone.cfg) が sparse checkout 済みの
+    # リポジトリを /tmp/private-isu に配置するので、再 clone せずそこからコピーする
+    - name: copy repos from local checkout
+      copy:
+        src: /tmp/private-isu/
+        dest: /home/isucon/private_isu.git/
+        remote_src: yes
+        owner: isucon
+        group: isucon

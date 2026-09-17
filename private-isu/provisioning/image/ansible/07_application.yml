@@ -1,0 +1,19 @@
+- hosts: guests:extras
+  become: yes
+  become_user: isucon
+  gather_facts: no
+  tasks:
+    - name: go build
+      shell: cd /home/isucon/private_isu/webapp/golang; bash -lc "./setup.sh"
+
+- hosts: guests:extras
+  become: yes
+  gather_facts: yes
+  tasks:
+    - copy: src=../files/home/isucon/env.sh dest=/home/isucon/env.sh owner=isucon mode=644
+    - name: go app (systemd)
+      copy: src=../files/etc/systemd/system/isu-go.service dest=/etc/systemd/system/isu-go.service owner=root mode=644
+    - name: reload daemon config
+      shell: systemctl daemon-reload
+    - name: default application selection
+      service: name=isu-go state=started enabled=true

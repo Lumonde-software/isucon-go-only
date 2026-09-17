@@ -1,0 +1,35 @@
+---
+- hosts: guests:extras
+  become: yes
+  become_user: isucon
+  gather_facts: no
+  vars:
+    app_dir: "/home/isucon/private_isu"
+    # go-only: cloud-config (app.cfg / standalone.cfg) が sparse checkout 済みの
+    # リポジトリを /tmp/private-isu に配置するので、再 clone せずそこからコピーする
+    src_dir: "/tmp/private-isu"
+  tasks:
+    - name: mkdir backup
+      file: path=/home/isucon/backup/ state=directory # As per instruction, can remain
+    - name: Ensure application directory exists
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: isucon
+        group: isucon
+        mode: '0755'
+    - name: Copy webapp to application directory
+      copy:
+        src: "{{ src_dir }}/webapp/"
+        dest: "{{ app_dir }}/webapp/"
+        remote_src: yes
+        owner: isucon
+        group: isucon
+    - name: Conditionally copy benchmarker to application directory
+      copy:
+        src: "{{ src_dir }}/benchmarker/"
+        dest: "{{ app_dir }}/benchmarker/"
+        remote_src: yes
+        owner: isucon
+        group: isucon
+      when: allinone is defined and allinone

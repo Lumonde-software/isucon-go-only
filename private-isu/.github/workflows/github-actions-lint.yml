@@ -1,0 +1,45 @@
+name: GitHub Actions Lint
+
+on:
+  push:
+    branches: ["master"]
+    paths:
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: 1.27.1
+
+      - name: Install linters
+        env:
+          GOBIN: ${{ runner.temp }}/go-bin
+        run: |
+          mkdir -p "$GOBIN"
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.11
+          go install github.com/suzuki-shunsuke/ghalint/cmd/ghalint@v1.5.5
+          echo "$GOBIN" >> "$GITHUB_PATH"
+
+      - name: Run actionlint
+        run: actionlint -shellcheck shellcheck
+
+      - name: Run ghalint
+        run: ghalint run
