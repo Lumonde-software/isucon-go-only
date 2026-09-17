@@ -37,10 +37,12 @@
       export PATH=/home/isucon/local/go/bin:/home/isucon/go/bin:$PATH
       export GOROOT=/home/isucon/local/go
 
-- name: Install python v3.8.5
+# Python 3.8/3.9 は OpenSSL 3.0 (Ubuntu 22.04) でビルドできない(ssl モジュールが
+# 欠落し pip が動かない)ため、OpenSSL 3.0 対応の 3.11 系に変更
+- name: Install python v3.11.9
   become: yes
   become_user: isucon
-  command: /tmp/xbuild/python-install 3.8.5 /home/isucon/local/python
+  command: /tmp/xbuild/python-install 3.11.9 /home/isucon/local/python
 
 - name: Add PATH for python
   become: yes
