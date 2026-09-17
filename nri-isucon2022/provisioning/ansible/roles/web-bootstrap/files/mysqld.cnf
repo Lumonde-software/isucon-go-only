@@ -57,8 +57,7 @@ myisam-recover-options  = BACKUP
 #
 # * Query Cache Configuration
 #
-query_cache_limit       = 1M
-query_cache_size        = 16M
+# query cache は MySQL 8.0 で削除されたため設定しない
 #
 # * Logging and Replication
 #
@@ -83,7 +82,9 @@ log_error = /var/log/mysql/error.log
 #       other settings you may need to change.
 #server-id              = 1
 #log_bin                        = /var/log/mysql/mysql-bin.log
-expire_logs_days        = 10
+# MySQL 8.0 はバイナリログがデフォルト有効のため、5.7 時代の挙動に合わせて無効化する
+disable-log-bin
+#expire_logs_days        = 10
 max_binlog_size   = 100M
 #binlog_do_db           = include_database_name
 #binlog_ignore_db       = include_database_name

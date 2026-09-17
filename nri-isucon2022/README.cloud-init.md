@@ -6,7 +6,7 @@ nri-isucon2022とほぼ同じ環境を構築するためのcloud-configです。
 
 ## Requirements
 
-* Ubuntu 18.04 LTSを用意してください。
+* Ubuntu 22.04 LTSを用意してください。
 * ベンチマーカーがx86-64用バイナリ配布のためApple Siliconではおそらく動きません。
 * ストレージは8GBでは不足します。16GBあれば問題ないと思います。
 * Memoryは1GBだと構築中に不足します。2GB以上あれば問題ないと思います。
