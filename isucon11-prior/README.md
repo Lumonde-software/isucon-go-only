@@ -15,11 +15,11 @@ ISUCON11事前講習の問題を Go 実装のみに削ぎ落としたもの。�
 * cloud-init を使って起動します
 
   ```sh
-  multipass launch --name isucon11-prior --cpus 2 --disk 20G --memory 4G --timeout 86400 --cloud-init isucon11-prior/isucon11-prior.cfg 20.04
+  multipass launch --name isucon11-prior --cpus 2 --disk 20G --memory 4G --timeout 86400 --cloud-init isucon11-prior/isucon11-prior.cfg 22.04
   ```
 
   * cpus, disk, memory は必要に応じて増減させてください
-  * 末尾の `20.04` は Ubuntu のバージョンです
+  * 末尾の `22.04` は Ubuntu のバージョンです
   * cloud-init は時間がかかるため timeout のエラーが表示される場合がありますが、バックグラウンドで構築は継続しています
 * 進捗は `/var/log/cloud-init-output.log` で確認できます
 

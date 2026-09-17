@@ -65,6 +65,45 @@ cfg 内の sed 2 箇所は削ぎ落とし後も成立することを確認済み
 - `sed -i 's/apt upgrade -y/true/' cookbooks/apt/default.rb` → 対象行あり(default.rb:5)
 - `sed -i "s/include_cookbook 'systemd-timesyncd'//" recipe.rb` → 対象行あり(recipe.rb:20)
 
+## Ubuntu 22.04対応
+
+Ubuntu 22.04 (jammy) でプロビジョニングできるよう以下を修正(静的確認のみ、実機検証は未実施):
+
+- `infra/instance/cookbooks/redis/default.rb`: `add-apt-repository -y ppa:redislabs/redis` を削除し、
+  ディストリ標準の `package 'redis'` のみに変更(isucon11q の mariadb バージョン無指定化と同じ方針)
+  - 理由: PPA 追加の冪等判定が `redislabs-ubuntu-redis-focal.list` と focal 決め打ちで、
+    22.04 では毎回 PPA 追加が走る上、PPA の jammy 対応も保証できない
+  - jammy の universe に redis 6.0.16 があり(20.04 でも redis 5.0 が入るので後方互換)、
+    redis は webapp からは未使用(netdata の監視対象のみ)のためバージョン差の影響なし
+- `isucon11-prior.cfg`: `ln -s /usr/share/keyrings /etc/apt/keyrings` を
+  `[ -e /etc/apt/keyrings ] || ln -s ...` に変更
+  - `/etc/apt/keyrings` が既に存在する環境(新しめの image)では `ln -s` が失敗し
+    `set -e` で runcmd 全体が中断するため
+- `README.md`: Multipass 起動例を `20.04` → `22.04` に変更
+  (README.cloud-init.md の Requirements の 20.04 記述は参考資料のためそのまま)
+
+修正不要と確認した箇所:
+
+- itamae: cfg は apt パッケージ `itamae` でインストールしており、jammy universe に 1.12.5 が存在
+- MySQL: パッケージ名は既に `mysql-server-8.0` 系で jammy に存在。ユーザー作成も
+  `CREATE USER ... IDENTIFIED WITH mysql_native_password` + `GRANT` 分離形式
+  (8.0 で廃止された `GRANT ... IDENTIFIED BY` は未使用)。mysql/netdata 両 cookbook とも同形式。
+  jammy の MySQL 8.0 では mysql_native_password プラグインは利用可能
+- nodejs: nodesource ではなく xbuild による node v16.3.0 バイナリ導入で、jammy の glibc 要件を満たす
+- python2 前提・apt-key 使用箇所: なし
+- netdata / python3-mysqldb / dstat / libmysqlclient-dev: jammy に存在
+- speedtest: Ookla の install.deb.sh はディストリを自動判定し jammy に対応
+
+22.04 で未修正の注意点:
+
+- `cookbooks/alp/default.rb` は `alp_linux_amd64.zip` 決め打ち。arm64 環境(Apple Silicon の
+  Multipass 等)ではプロビジョニング自体は成功するが alp バイナリが動作しない(20.04 でも同様の
+  既存問題で、22.04 固有ではないため未修正)
+- `cookbooks/nodejs/default.rb` の yarn インストールは `https://yarnpkg.com/install.sh` を実行する
+  外部スクリプト依存(classic yarn)。OS バージョンに依存しないが、将来の提供終了リスクあり
+- `cookbooks/resolv/` の netplan 設定は `ens160`(ESXi 向け NIC 名)決め打ち。Multipass では
+  該当 NIC が無くても netplan apply は失敗しない(既存挙動のまま)
+
 ## 注意点
 
 - `webapp/golang/public` は `../frontend/dist` へのシンボリックリンク。コミット時に
