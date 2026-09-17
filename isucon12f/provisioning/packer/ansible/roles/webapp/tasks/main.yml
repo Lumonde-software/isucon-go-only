@@ -1,0 +1,81 @@
+---
+- name: Install nginx
+  become: true
+  apt:
+    name:
+      - nginx
+
+- name: Copy files
+  become: true
+  copy:
+    src: "{{ item }}"
+    dest: "/{{ item }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  with_items:
+    - etc/nginx/nginx.conf
+    - etc/nginx/sites-available/isuconquest.conf
+    - etc/mysql/conf.d/my.cnf
+    - etc/systemd/system/isuconquest.go.service
+
+- name: Remove nginx default
+  become: true
+  file:
+    state: absent
+    path: /etc/nginx/sites-enabled/default
+
+- name: Enable isuconquest
+  become: true
+  file:
+    path: /etc/nginx/sites-enabled/isuconquest.conf
+    src: /etc/nginx/sites-available/isuconquest.conf
+    state: link
+
+- name: Download dump data
+  become: true
+  become_user: isucon
+  shell:
+    cmd: make initial-data
+    chdir: /home/isucon/isucon12-final/dev
+
+- name: Copy webapp
+  become: true
+  become_user: isucon
+  command: cp -a /home/isucon/isucon12-final/webapp /home/isucon/webapp
+
+- name: Copy shell file
+  become: true
+  become_user: isucon
+  copy:
+    src: "{{ item }}"
+    dest: "/{{ item }}"
+    mode: "0755"
+  with_items:
+    - home/isucon/webapp/sql/init.sh
+    - home/isucon/webapp/sql/setup/setup.sh
+
+- name: Create isucon database
+  become: true
+  shell: >
+    mysql -uroot -e "CREATE DATABASE IF NOT EXISTS isucon;"
+
+- name: Load database schema
+  become: true
+  shell:
+    cmd: bash setup.sh
+    chdir: /home/isucon/webapp/sql/setup
+
+- name: Build go application
+  become: true
+  become_user: isucon
+  shell:
+    cmd: /home/isucon/.x go build -o isuconquest .
+    chdir: /home/isucon/webapp/go
+
+- name: Enable isuconquest.go.service
+  become: true
+  systemd:
+    name: isuconquest.go
+    daemon_reload: true
+    enabled: true

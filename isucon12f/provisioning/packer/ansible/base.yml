@@ -1,0 +1,11 @@
+---
+- hosts: all
+  tasks:
+    - import_role:
+        name: base
+    - import_role:
+        name: apt
+    - import_role:
+        name: isucon-user
+    - import_role:
+        name: xbuild
