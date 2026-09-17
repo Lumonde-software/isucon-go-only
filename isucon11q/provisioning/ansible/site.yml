@@ -1,0 +1,45 @@
+---
+- name: "common roles"
+  hosts: all
+  tags:
+    - contestant
+    - bench
+    - standalone
+  roles:
+    - common
+    - langs
+
+- name: "contestant roles"
+  hosts: [contestant]
+  tags: [contestant]
+  roles:
+    - langs.go
+    - contestant
+
+- name: "contestant roles for the qualify day"
+  hosts: [contestant]
+  tags: [qualify]
+  roles:
+    - contestant.envchecker
+
+- name: "bench roles"
+  hosts: [bench]
+  tags: [bench]
+  roles:
+    - langs.go
+    - bench
+
+- name: "bench roles for the qualify day"
+  hosts: [bench]
+  tags: [qualify]
+  roles:
+    - bench.node_exporter
+    - bench.supervisor
+
+- name: "standalone roles"
+  hosts: [standalone]
+  roles:
+    - langs.go
+    - contestant
+    - bench
+

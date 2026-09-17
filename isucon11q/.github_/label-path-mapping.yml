@@ -1,0 +1,15 @@
+backend:
+  - webapp/go/**/*
+frontend:
+  - webapp/frontend/**/*
+benchmarker:
+  - bench/**/*
+infrastructure:
+  - provisioning/**/*
+documentation:
+  - docs/**/*
+initial-data:
+  - extra/initial-data/**/*
+  - bench/random/**/*
+jiaapi-mock:
+  - extra/jiaapi-mock/**/*
