@@ -1,0 +1,13 @@
+backend:
+  - webapp/go/**/*
+frontend:
+  - webapp/frontend/**/*
+benchmarker:
+  - benchmarker/**/*
+infrastructure:
+  - provisioning/**/*
+documentation:
+  - docs/**/*
+# initial-data:
+#   - extra/initial-data/**/*
+#   - bench/random/**/*

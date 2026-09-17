@@ -1,0 +1,40 @@
+---
+- name: "roles/contestant/tasks/isucholar: Deploy isucon11-final"
+  become_user: isucon
+  copy:
+    remote_src: yes
+    src: /tmp/isucon11-final/webapp
+    dest: /home/isucon/
+    owner: isucon
+    group: isucon
+
+- name: "roles/contestant/tasks/isucholar: Deploy env file"
+  become_user: isucon
+  copy:
+    src: "home/isucon/env.sh"
+    dest: "/home/isucon/env.sh"
+    owner: isucon
+    group: isucon
+
+
+- name: "roles/contestant/tasks/isucholar: Include isucholar-go.yml"
+  include: isucholar-go.yml
+
+
+
+- name: "roles/contestant/tasks/isucholar: Enable isucholar.go.service"
+  become_user: root
+  systemd:
+    daemon_reload: "yes"
+    name: "isucholar.go.service"
+    enabled: "yes"
+
+- name: "roles/contestant/tasks/isucholar: Initialize isucholar database"
+  become_user: root
+  args:
+    chdir: /home/isucon/webapp/sql
+  shell: |
+    mysql -uroot < 0_setup.sql
+    mysql -uisucon -pisucon isucholar < 1_schema.sql
+    mysql -uisucon -pisucon isucholar < 2_init.sql
+    mysql -uisucon -pisucon isucholar < 3_sample.sql
