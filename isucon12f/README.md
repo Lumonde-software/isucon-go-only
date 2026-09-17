@@ -91,3 +91,45 @@ provisioningディレクトリにあるansibleを用いて構築します
 - [ISUCON12本選 当日マニュアル](https://gist.github.com/shirai-suguru/770d30d16688a07ba78e0a188cd99f9f)
 - [ISUCON12本選 アプリケーションマニュアル](https://gist.github.com/shirai-suguru/accb96c5f86200b5c16e1d2a8b533cc1)
 - [ISUCON12本選 問題の解説と講評](https://isucon.net/archives/56959385.html)
+
+## Multipassでの利用方法
+
+* [Multipass](https://multipass.run/) 実行環境を用意します
+* このリポジトリを手元に用意します
+
+  ```sh
+  git clone https://github.com/Lumonde-software/isucon-go-only.git
+  cd isucon-go-only
+  ```
+
+* cloud-init を使って起動します
+
+  ```sh
+  multipass launch --name isucon12f --cpus 2 --disk 20G --memory 4G --timeout 86400 --cloud-init isucon12f/isucon12f.cfg 22.04
+  ```
+
+  * cpus, disk, memory は必要に応じて増減させてください
+  * 末尾の `22.04` は Ubuntu のバージョンです
+  * cloud-init は時間がかかるため timeout のエラーが表示される場合がありますが、バックグラウンドで構築は継続しています
+* 進捗は `/var/log/cloud-init-output.log` で確認できます
+
+  ```sh
+  multipass exec isucon12f -- tail -f /var/log/cloud-init-output.log
+  ```
+
+* ログインとIPアドレスの確認
+
+  ```sh
+  multipass shell isucon12f
+  multipass info isucon12f
+  ```
+
+* 環境の停止・再開・削除
+
+  ```sh
+  multipass stop isucon12f
+  multipass start isucon12f
+  multipass delete --purge isucon12f
+  ```
+
+ベンチマークの実行方法など詳細は同ディレクトリの README.cloud-init.md を参照してください。

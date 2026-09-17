@@ -234,3 +234,47 @@ https://gist.github.com/tohutohu/024551682a9004da286b0abd6366fa55 を参照
 
 * Rust実装 https://github.com/Romira915/private-isu-rust
 * Scala実装 https://github.com/catatsuy/private-isu/pull/140
+
+## Multipassでの利用方法
+
+* [Multipass](https://multipass.run/) 実行環境を用意します
+* このリポジトリを手元に用意します
+
+  ```sh
+  git clone https://github.com/Lumonde-software/isucon-go-only.git
+  cd isucon-go-only
+  ```
+
+* cloud-init を使って起動します
+
+  ```sh
+  multipass launch --name private-isu --cpus 2 --disk 20G --memory 4G --timeout 86400 --cloud-init private-isu/standalone.cfg 24.04
+  ```
+
+  * cpus, disk, memory は必要に応じて増減させてください
+  * 末尾の `24.04` は Ubuntu のバージョンです
+  * cloud-init は時間がかかるため timeout のエラーが表示される場合がありますが、バックグラウンドで構築は継続しています
+* 進捗は `/var/log/cloud-init-output.log` で確認できます
+
+  ```sh
+  multipass exec private-isu -- tail -f /var/log/cloud-init-output.log
+  ```
+
+* ログインとIPアドレスの確認
+
+  ```sh
+  multipass shell private-isu
+  multipass info private-isu
+  ```
+
+* 環境の停止・再開・削除
+
+  ```sh
+  multipass stop private-isu
+  multipass start private-isu
+  multipass delete --purge private-isu
+  ```
+
+ベンチマークの実行方法など詳細は同ディレクトリの README.cloud-init.md を参照してください。
+
+なお cfg は3種類あります: 競技者用 `app.cfg` / ベンチマーカー用 `benchmarker.cfg` / 同居の `standalone.cfg`(上記の例は standalone)。

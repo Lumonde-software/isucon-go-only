@@ -120,3 +120,45 @@ $ go run . run --target http://{{ 対象のIPアドレス }}:{{ 対象のポー�
 ## Links
 
 - [ISUCON14 まとめ](https://isucon.net/archives/58818382.html)
+
+## Multipassでの利用方法
+
+* [Multipass](https://multipass.run/) 実行環境を用意します
+* このリポジトリを手元に用意します
+
+  ```sh
+  git clone https://github.com/Lumonde-software/isucon-go-only.git
+  cd isucon-go-only
+  ```
+
+* cloud-init を使って起動します
+
+  ```sh
+  multipass launch --name isucon14 --cpus 2 --disk 20G --memory 4G --timeout 86400 --cloud-init isucon14/isucon14.cfg 24.04
+  ```
+
+  * cpus, disk, memory は必要に応じて増減させてください
+  * 末尾の `24.04` は Ubuntu のバージョンです
+  * cloud-init は時間がかかるため timeout のエラーが表示される場合がありますが、バックグラウンドで構築は継続しています
+* 進捗は `/var/log/cloud-init-output.log` で確認できます
+
+  ```sh
+  multipass exec isucon14 -- tail -f /var/log/cloud-init-output.log
+  ```
+
+* ログインとIPアドレスの確認
+
+  ```sh
+  multipass shell isucon14
+  multipass info isucon14
+  ```
+
+* 環境の停止・再開・削除
+
+  ```sh
+  multipass stop isucon14
+  multipass start isucon14
+  multipass delete --purge isucon14
+  ```
+
+ベンチマークの実行方法など詳細は同ディレクトリの README.cloud-init.md を参照してください。

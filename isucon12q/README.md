@@ -90,3 +90,45 @@ https://github.com/isucon/isucon12-qualify/releases 以下にビルド済みの�
 - [ISUCON12予選 当日マニュアル](https://gist.github.com/mackee/4320c18919c8f6f1867849378a17e651)
 - [ISUCON12予選 解説(Node.jsでSQLiteのまま10万点行く方法)](https://isucon.net/archives/56842718.html)
 - [ISUCON12予選 問題の解説と講評](https://isucon.net/archives/56850281.html)
+
+## Multipassでの利用方法
+
+* [Multipass](https://multipass.run/) 実行環境を用意します
+* このリポジトリを手元に用意します
+
+  ```sh
+  git clone https://github.com/Lumonde-software/isucon-go-only.git
+  cd isucon-go-only
+  ```
+
+* cloud-init を使って起動します
+
+  ```sh
+  multipass launch --name isucon12q --cpus 2 --disk 20G --memory 4G --timeout 86400 --cloud-init isucon12q/isucon12q.cfg 22.04
+  ```
+
+  * cpus, disk, memory は必要に応じて増減させてください
+  * 末尾の `22.04` は Ubuntu のバージョンです
+  * cloud-init は時間がかかるため timeout のエラーが表示される場合がありますが、バックグラウンドで構築は継続しています
+* 進捗は `/var/log/cloud-init-output.log` で確認できます
+
+  ```sh
+  multipass exec isucon12q -- tail -f /var/log/cloud-init-output.log
+  ```
+
+* ログインとIPアドレスの確認
+
+  ```sh
+  multipass shell isucon12q
+  multipass info isucon12q
+  ```
+
+* 環境の停止・再開・削除
+
+  ```sh
+  multipass stop isucon12q
+  multipass start isucon12q
+  multipass delete --purge isucon12q
+  ```
+
+ベンチマークの実行方法など詳細は同ディレクトリの README.cloud-init.md を参照してください。
