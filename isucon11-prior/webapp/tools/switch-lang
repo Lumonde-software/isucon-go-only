@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e
+
+LANG=$1
+
+if [ "$LANG" = "" ]; then
+  echo "Usage: switch-lang [LANG]" 1>&2
+  echo "  Choose your development language(golang)" 1>&2
+  exit 1
+fi
+
+sudo systemctl stop web-golang
+
+sudo systemctl disable web-golang
+
+sudo systemctl enable web-${LANG}
+sudo systemctl start web-${LANG}
