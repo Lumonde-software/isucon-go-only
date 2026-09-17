@@ -4,7 +4,7 @@
   become_user: root
   apt:
     name:
-    - mysql-server-8.0
+    - mysql-server
     update_cache: yes
 
 - name: "roles/contestant/tasks/mysql: Copy configs"
